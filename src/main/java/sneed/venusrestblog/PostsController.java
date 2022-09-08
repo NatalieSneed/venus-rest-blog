@@ -1,42 +1,76 @@
 package sneed.venusrestblog;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import sneed.venusrestblog.data.Post;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "/api/posts", headers = "Accept=application/json")
-
-
+@RequestMapping(value = "/api/posts", produces = "application/json")
 public class PostsController {
-    @GetMapping("/")
-    public List<Post> fetchPosts() {
-//        TODO: go get some posts
-    List<Post> posts = new ArrayList<>();
-    posts.add(new Post(1L, "Post 1", "This is Post 1"));
-        posts.add(new Post(2L, "Post 2", "This is Post 2"));
+    private List<Post> posts = new ArrayList<>();
 
+    @GetMapping("/")
+////        @RequestMapping(value = "/", method = RequestMethod.GET);
+//       TODO: go get some posts
+    public List<Post> fetchPosts() {
         return posts;
     }
 
     @GetMapping("/{id}")
     public Post fetchPostById(@PathVariable long id) {
-//        TODO: go get some posts & return them
-        switch ((int) id) {
-            case 1:
-                return new Post(1L, "Post 1", "This is Post 1");
-            case 2:
-                return new Post(2L, "Post 2", "This is Post 2");
-            default:
-//                TODO: respond w/ a 404
-                throw new RuntimeException("no no no ... ");
-
-        }
+//        TODO: search thru the list of posts
+//        and return the post that matches the given id
+        Post post = findPostById(id);
+        throw new RuntimeException("don't know what's going on");
     }
 
-}
+    private Post findPostById(long id) {
+        for (Post post : posts) {
+            if (post.getId() == id) {
+                return post;
+            }
+        }
+        //didn't find it so do something else
+        return null;
+    }
+    @PostMapping("/")
+    public void createPost(@RequestBody Post newPost) {
+        posts.add(newPost);
+    }
+        @DeleteMapping("/{id}")
+        public void deletePostById(@PathVariable long id) {
+//        TODO: search thru the list of posts
+//        and delete the post the post that matches the given id
+            Post post = findPostById(id);
+            if(post != null) {
+              posts.remove(post);
+               return;
+                }
+//            what to do if we don't find it
+            throw new RuntimeException("don't know what's going on");
+        }
+        @PutMapping("/{id}")
+                public void updatePost(@RequestBody Post updatedPost, @PathVariable long id) {
+        //find the post to update in the post list
+        Post post = findPostById(id);
+                if(post == null) {
+                    System.out.println("Post not found");
+                } else {
+                    if(updatedPost.getTitle() != null) {
+                        post.setTitle(updatedPost.getTitle());
+                    }
+                    if(updatedPost.getContent() != null) {
+                        post.setContent(updatedPost.getContent());
+                    }
+                    return;
+                }
+                throw new RuntimeException("Post not found");
+            }
+        }
+
+
+
+
+
