@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Controller
 public class DogFactController {
 
-    @GetMapping
+    @GetMapping("/dogo")
     @ResponseBody
     public String fetchDogFact() {
         return "Puppies are a pain in the butt!";

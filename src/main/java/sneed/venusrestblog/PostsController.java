@@ -10,8 +10,8 @@ import java.util.List;
 @RequestMapping(value = "/api/posts", produces = "application/json")
 public class PostsController {
     private List<Post> posts = new ArrayList<>();
-
-    @GetMapping("/")
+private long nextId = 1;
+    @GetMapping("")
 ////        @RequestMapping(value = "/", method = RequestMethod.GET);
 //       TODO: go get some posts
     public List<Post> fetchPosts() {
@@ -23,9 +23,11 @@ public class PostsController {
 //        TODO: search thru the list of posts
 //        and return the post that matches the given id
         Post post = findPostById(id);
-        throw new RuntimeException("don't know what's going on");
+        if (post == null) {
+            throw new RuntimeException("what is going on?!");
+        }
+        return post;
     }
-
     private Post findPostById(long id) {
         for (Post post : posts) {
             if (post.getId() == id) {
@@ -35,8 +37,11 @@ public class PostsController {
         //didn't find it so do something else
         return null;
     }
-    @PostMapping("/")
+    @PostMapping("")
     public void createPost(@RequestBody Post newPost) {
+//        assign nextId to the new post
+        newPost.setId(nextId);
+        nextId++;
         posts.add(newPost);
     }
         @DeleteMapping("/{id}")
