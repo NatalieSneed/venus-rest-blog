@@ -7,7 +7,7 @@ import Login from "./views/Login.js";
 import LoginEvent from "./auth.js";
 import Register from "./views/Register.js"
 import {RegisterEvent} from "./views/Register.js";
-
+import prepareUser from
 /**
  * Returns the route object for a specific route based on the given URI
  * @param URI
@@ -42,7 +42,7 @@ export default function router(URI) {
             },
             uri: '/posts',
             title: 'All Posts',
-            viewEvent: 'postSetup'
+            viewEvent: postSetup
         },
         '/about': {
             returnView: About,
@@ -63,7 +63,6 @@ export default function router(URI) {
             title: 'Loading...',
         }
     };
-
     return routes[URI];
 }
 

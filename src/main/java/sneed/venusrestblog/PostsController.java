@@ -12,7 +12,6 @@ public class PostsController {
     private List<Post> posts = new ArrayList<>();
 private long nextId = 1;
     @GetMapping("")
-////        @RequestMapping(value = "/", method = RequestMethod.GET);
 //       TODO: go get some posts
     public List<Post> fetchPosts() {
         return posts;
@@ -26,6 +25,7 @@ private long nextId = 1;
         if (post == null) {
             throw new RuntimeException("what is going on?!");
         }
+//        we found the post so just return it
         return post;
     }
     private Post findPostById(long id) {
@@ -54,24 +54,25 @@ private long nextId = 1;
                return;
                 }
 //            what to do if we don't find it
-            throw new RuntimeException("don't know what's going on");
+            throw new RuntimeException("Could not find that post");
         }
         @PutMapping("/{id}")
-                public void updatePost(@RequestBody Post updatedPost, @PathVariable long id) {
+        public void updatePost(@RequestBody Post updatedPost, @PathVariable long id) {
         //find the post to update in the post list
+
         Post post = findPostById(id);
-                if(post == null) {
+        if(post == null) {
                     System.out.println("Post not found");
-                } else {
-                    if(updatedPost.getTitle() != null) {
-                        post.setTitle(updatedPost.getTitle());
+        } else {
+            if(updatedPost.getTitle() != null) {
+                post.setTitle(updatedPost.getTitle());
                     }
-                    if(updatedPost.getContent() != null) {
-                        post.setContent(updatedPost.getContent());
+            if(updatedPost.getContent() != null) {
+                post.setContent(updatedPost.getContent());
                     }
-                    return;
+            return;
                 }
-                throw new RuntimeException("Post not found");
+        throw new RuntimeException("Post not found");
             }
         }
 
