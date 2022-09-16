@@ -11,7 +11,8 @@ import java.util.Collection;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString@Entity
+@ToString
+@Entity
 @Table(name="categories")
 
 public class Category {

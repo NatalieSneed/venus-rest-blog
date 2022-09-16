@@ -28,7 +28,7 @@ public class User {
 
     @Email
     @NotEmpty
-    @Column(nullable = false, unique = false,length = 100)
+    @Column(nullable = false, length = 100)
     private String email;
 
     @ToString.Exclude

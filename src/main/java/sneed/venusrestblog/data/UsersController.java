@@ -1,4 +1,5 @@
 package sneed.venusrestblog.data;
+import org.springframework.beans.BeanUtils;
 import sneed.venusrestblog.data.respository.UsersRepository;
 import lombok.AllArgsConstructor;
 
@@ -12,6 +13,7 @@ import sneed.venusrestblog.data.User;
 import sneed.venusrestblog.data.PostsRepository;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
+import javax.swing.text.html.Option;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
@@ -32,12 +34,17 @@ public class UsersController {
 ////    private long nextId = 1;
     @GetMapping("")
     public List<User> fetchUsers() {
+
         return usersRepository.findAll();
     }
 
     @GetMapping("/{id}")
     public Optional<User> fetchUserById(@PathVariable long id) {
-        return usersRepository.findById(id);
+        Optional<User> optionalUser = usersRepository.findById(id);
+        if(optionalUser.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + id + " not found");
+        }
+        return optionalUser;
     }
 
     @GetMapping("/me")
@@ -47,6 +54,7 @@ public class UsersController {
 
     @PostMapping("/create")
     public void createUser(@RequestBody User newUser) {
+//        TODO: validate new user fields
         // don't need the below line at this point but just for kicks
         newUser.setCreatedAt(LocalDate.now());
         usersRepository.save(newUser);
@@ -54,28 +62,51 @@ public class UsersController {
 
     @DeleteMapping("/{id}")
     public void deleteUserById(@PathVariable long id) {
+        Optional<User> optionalUser = usersRepository.findById(id);
+        if(optionalUser.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + id + "not found ");
+        }
         usersRepository.deleteById(id);
     }
 
     @PutMapping("/{id}")
     public void updateUser(@RequestBody User updatedUser, @PathVariable long id) {
-        // find the post to update in the posts list
-        updatedUser.setId(id);
+        Optional<User> optionalUser = usersRepository.findById(id);
+        if(optionalUser.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + id + " not found");
+        }
+//        get the user from the optional so we no longer have to deal with the optional
+        User originalUser = optionalUser.get();
+
+        // merge the changed data in updatedUser with originalUser
+        BeanUtils.copyProperties(updatedUser, originalUser, FieldHelper.getNullPropertyNames(updatedUser));
+
+//        originalUser now has the merged data (changes + original data)
+        originalUser.setId(id);
+
         usersRepository.save(updatedUser);
     }
 
     @PutMapping("/{id}/updatePassword")
     private void updatePassword(@PathVariable Long id, @RequestParam(required = false) String oldPassword, @RequestParam String newPassword) {
-        User user = usersRepository.findById(id).get();
-        if(!user.getPassword().equals(oldPassword)) {
+        Optional<User> optionalUser = usersRepository.findById(id);
+//        User user = usersRepository.findById(id).get();
+        if(optionalUser.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + id + " not found");
+        }
+        User user = optionalUser.get();
+
+//        compare old password with saved pw
+        if(!user.getPassword().equals(oldPassword)){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "amscray");
         }
 
-        if(newPassword.length() < 3){
+//        validate new password
+        if(newPassword.length() < 3) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "new pw length must be at least 3 characters");
         }
         user.setPassword(newPassword);
         usersRepository.save(user);
     }
-    }
+}
 
