@@ -1,83 +1,81 @@
 package sneed.venusrestblog.data;
+import sneed.venusrestblog.data.respository.UsersRepository;
+import lombok.AllArgsConstructor;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import org.springframework.web.server.ResponseStatusException;
+import sneed.venusrestblog.PostsController;
 import sneed.venusrestblog.data.Post;
 import sneed.venusrestblog.data.User;
-import org.springframework.web.bind.annotation.*;
+import sneed.venusrestblog.data.PostsRepository;
+import java.util.Optional;
+import javax.annotation.PostConstruct;
+import javax.validation.Valid;
+import javax.validation.constraints.Size;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
+@AllArgsConstructor
 @RestController
 @RequestMapping(value = "/api/users", produces = "application/json")
 public class UsersController {
-    private List<User> users = new ArrayList<>();
-    private long nextId = 1;
+    private UsersRepository usersRepository;
+
+    //    private UsersRepository postsRepository;
+//    @PostConstruct
+//    public UsersController(PostsRepository postsRepository) {
+//        this.postsRepository = postsRepository;
+//    }
+////    private List<User> users = new ArrayList<>(List.of(new User(1, "nat", "natnat@natnat.who", "55555", LocalDate.now(), UserRole.ADMIN, new ArrayList<>())));
+////    private long nextId = 1;
+    @GetMapping("")
+    public List<User> fetchUsers() {
+        return usersRepository.findAll();
+    }
 
     @GetMapping("/{id}")
-    public User fetchUserById(@PathVariable long id) {
-//        search through the list of posts
-//        and return the post that matches the given id
-        User user = findUserById(id);
-        if (user == null) {
-            throw new RuntimeException("what is going on?!");
-        }
-//        when found the post so just return it
-        return user;
+    public Optional<User> fetchUserById(@PathVariable long id) {
+        return usersRepository.findById(id);
     }
-    @GetMapping("/username/{username}")
-    private User fetchByUsername(@PathVariable String username) {
-        User user = findUserByUserName(username);
-        if (user == null) {
-            throw new RuntimeException("what is going on?!");
-        }
-        return user;
+
+    @GetMapping("/me")
+    private Optional<User> fetchMe() {
+        return usersRepository.findById(1L);
     }
-    private User findUserByUserName(String username) {
-        for (User user : users) {
-            if (user.getUserName().equals(username)) {
-                return user;
-            }
-        }
-        return null;
-    }
-    private User findUserById(long id) {
-        for (User user : users) {
-            if (user.getId() == id) {
-                return user;
-            }
-        }
-//        didn't find it so do something else
-        return null;
-    }
+
     @PostMapping("/create")
     public void createUser(@RequestBody User newUser) {
-//        assign nextId to the new post
-        newUser.setId(nextId);
-        nextId++;
-        users.add(newUser);
+        // don't need the below line at this point but just for kicks
+        newUser.setCreatedAt(LocalDate.now());
+        usersRepository.save(newUser);
     }
+
     @DeleteMapping("/{id}")
     public void deleteUserById(@PathVariable long id) {
-//        search thru the list of posts
-//        and delete the post the post that matches the given id
-        User user = findUserById(id);
-        if(user != null) {
-            users.remove(user);
-            return;
-        }
-//            what to do if we don't find it
-        throw new RuntimeException("Could not find that post");
+        usersRepository.deleteById(id);
     }
+
     @PutMapping("/{id}")
     public void updateUser(@RequestBody User updatedUser, @PathVariable long id) {
-        User user = findUserById(id);
-        if (user == null) {
-            System.out.println("User not found");
-        }else{
-            if(updatedUser.getEmail() !=null) {
-                user.setEmail(updatedUser.getEmail());
-            }
-            return;
-        }
-        throw new RuntimeException("Could not find that post");
+        // find the post to update in the posts list
+        updatedUser.setId(id);
+        usersRepository.save(updatedUser);
     }
-}
+
+    @PutMapping("/{id}/updatePassword")
+    private void updatePassword(@PathVariable Long id, @RequestParam(required = false) String oldPassword, @RequestParam String newPassword) {
+        User user = usersRepository.findById(id).get();
+        if(!user.getPassword().equals(oldPassword)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "amscray");
+        }
+
+        if(newPassword.length() < 3){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "new pw length must be at least 3 characters");
+        }
+        user.setPassword(newPassword);
+        usersRepository.save(user);
+    }
+    }
+
